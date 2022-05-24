@@ -1,0 +1,4 @@
+#!/bin/bash
+chmod +x mshark
+mv mshark /data/data/com.termux/files/usr/bin
+
